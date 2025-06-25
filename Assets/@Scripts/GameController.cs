@@ -1,27 +1,38 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
 {
     [SerializeField] GameObject _disturbanceButtonPrefab;
+    [SerializeField] AudioSource _bubblePopSound;
+    [SerializeField] AudioSource _brokenSound;
 
     public MusicController musicController;
 
     public GameObject buttonPrefab;
-    public Text scoreLabel;
+    public TMP_Text scoreLabel;
     public float gameSpeed;
+
+    public RectTransform canvasRectTransform; // UI가 위치한 캔버스의 RectTransform
+    public float disturbanceSpawnInterval = 5f;
+    public float disturbanceButtonRadius = 100f; // 버튼 크기 반지름
 
     private string gameDataFileName;
     private int gameScore = 0;
     private int roundedButtonCount;
-    public Stopwatch gameTimer = new Stopwatch();
+    private float _timer;
+    //public Stopwatch gameTimer = new Stopwatch();
 
     private SortedList<float, ButtonItem> gameButtons = new SortedList<float, ButtonItem>();
+
+    public static Action<bool> OnPreferencePanelSet;
+
+    public static Action OnCollision;
 
     void Start()
     {
@@ -31,13 +42,86 @@ public class GameController : MonoBehaviour
             return;
         }
 
-        StartCoroutine(PlayMusicOnDelay(2f));
-        gameTimer.Start();
+        StartCoroutine(PlayMusicOnDelay(0));
+        _timer = 0f;
+
+        StartCoroutine(SpawnDisturbanceButtons());
+
 
         ButtonController.OnClicked += OnGameButtonClick;
+        ButtonController.OnPlayerMissClicked += OnBrokenSoundPlay;
         GameManager.Instance.OnScoreUpdate += OnGameOver;
+        OnPreferencePanelSet += MusicPause;
+
+        OnCollision += OnBrokenSoundPlay;
 
         roundedButtonCount = ButtonCountInitializer();
+    }
+
+    private IEnumerator SpawnDisturbanceButtons()
+    {
+        while (GameManager.Instance.IsPlaying)
+        {
+            yield return new WaitForSeconds(disturbanceSpawnInterval);
+            Vector2 spawnPos;
+            bool foundPos = false;
+            int maxAttempts = 30;
+
+            for (int i = 0; i < maxAttempts; i++)
+            {
+                spawnPos = GetRandomCanvasPosition();
+
+                if (!IsOverlappingWithRealButtons(spawnPos))
+                {
+                    GameObject disturbance = Instantiate(_disturbanceButtonPrefab, new Vector3(0, 0, 0), Quaternion.identity) as GameObject;
+                    disturbance.transform.SetParent(GameObject.FindGameObjectWithTag("GameController").transform, false);
+                    ButtonController buttonController = disturbance.GetComponent<ButtonController>();
+
+                    buttonController.duration = gameSpeed;
+                    buttonController.InitializeButton(_timer * 1000, spawnPos[0], spawnPos[1], spawnPos[0], spawnPos[1]);
+                    //GameObject disturbance = Instantiate(_disturbanceButtonPrefab, canvasRectTransform);
+                    //disturbance.transform.SetAsFirstSibling();
+                    //UnityEngine.Debug.Log($"방해 버튼 생성됨 at {spawnPos}");
+                    //disturbance.GetComponent<RectTransform>().anchoredPosition = spawnPos;
+                    foundPos = true;
+                    break;
+                }
+            }
+
+            if (!foundPos)
+            {
+                UnityEngine.Debug.LogWarning("Disturbance 위치 찾지 못함");
+            }
+        }
+    }
+
+    private bool IsOverlappingWithRealButtons(Vector2 newPos)
+    {
+        var buttons = FindObjectsByType<ButtonController>(FindObjectsSortMode.None);
+
+        foreach (var button in buttons)
+        {
+            if (button is DisturbanceButtonController) continue;
+
+            Vector2 existingPos = ((RectTransform)button.transform).anchoredPosition;
+            if (Vector2.Distance(existingPos, newPos) < disturbanceButtonRadius * 2f)
+            {
+                return true; // 너무 가까움
+            }
+        }
+
+        return false;
+    }
+
+    private Vector2 GetRandomCanvasPosition()
+    {
+        float width = canvasRectTransform.rect.width;
+        float height = canvasRectTransform.rect.height;
+
+        float x = UnityEngine.Random.Range(disturbanceButtonRadius, width - disturbanceButtonRadius);
+        float y = UnityEngine.Random.Range(disturbanceButtonRadius, height - disturbanceButtonRadius);
+
+        return new Vector2(x, y);
     }
 
     private IEnumerator PlayMusicOnDelay(float seconds)
@@ -60,12 +144,13 @@ public class GameController : MonoBehaviour
 
     void Update()
     {
-        if (gameButtons.Count > 0 && gameTimer.ElapsedMilliseconds > gameButtons.Keys[0] && GameManager.Instance.IsPlaying)
+        _timer += Time.deltaTime;
+        if (gameButtons.Count > 0 && _timer * 1000 > gameButtons.Keys[0] && GameManager.Instance.IsPlaying)
         {
             int buttonNum = 4 - System.Math.Abs(roundedButtonCount) % 4;
             float keyTime = gameButtons.Keys[0];
 
-            CreateButton(gameTimer.ElapsedMilliseconds, gameButtons[keyTime].position, gameButtons[keyTime].endPosition, buttonNum);
+            CreateButton(_timer * 1000, gameButtons[keyTime].position, gameButtons[keyTime].endPosition, buttonNum);
 
             if (gameButtons[keyTime].isDrag)
             {
@@ -83,8 +168,8 @@ public class GameController : MonoBehaviour
 
     private bool LoadGameData()
     {
-        //gameDataFileName = GameManager.Instance.CurrentMusic.name.Substring(1) + ".json";
-        gameDataFileName = "babyshark.json";
+        gameDataFileName = GameManager.Instance.CurrentMusic.name.Substring(1) + ".json";
+        //gameDataFileName = "babyshark.json";
         string filePath = Path.Combine(Application.streamingAssetsPath, gameDataFileName);
 
         if (File.Exists(filePath))
@@ -110,16 +195,20 @@ public class GameController : MonoBehaviour
         button.transform.SetParent(GameObject.FindGameObjectWithTag("GameController").transform, false);
         ButtonController buttonController = button.GetComponent<ButtonController>();
 
-        buttonController.startButtonText.text = buttonNum.ToString();
-
         buttonController.duration = gameSpeed;
         buttonController.InitializeButton(startTime, startPos[0], startPos[1], endPos[0], endPos[1]);
     }
 
     public void OnGameButtonClick(ButtonController button)
     {
+        _bubblePopSound.Play();
         gameScore += (int)button.buttonScore;
         UpdateScoreLabel(gameScore);
+    }
+
+    public void OnBrokenSoundPlay()
+    {
+        _brokenSound.Play();
     }
 
     private void UpdateScoreLabel(int scoreValue)
@@ -136,18 +225,29 @@ public class GameController : MonoBehaviour
 
     private void OnGameOver()
     {
+        musicController.StopAudio();
         GameManager.Instance.Score = gameScore;
         GameManager.Instance.OnResultPanelActive?.Invoke();
-        ButtonController[] buttons = FindObjectsByType<ButtonController>(FindObjectsSortMode.None);
-        for (int i = 0; i < buttons.Length; i++)
+    }
+
+    void MusicPause(bool flag)
+    {
+        if(flag)
         {
-            buttons[i].StopAllCoroutines();
+            musicController.AudioSource.Pause();
+        }
+        else
+        {
+            musicController.AudioSource.Play();
         }
     }
 
     private void OnDestroy()
     {
         ButtonController.OnClicked -= OnGameButtonClick;
+        ButtonController.OnPlayerMissClicked -= OnBrokenSoundPlay;
+        OnPreferencePanelSet -= MusicPause;
+        OnCollision -= OnBrokenSoundPlay;
         if (Application.isPlaying)
         {
             GameManager.Instance.OnScoreUpdate -= OnGameOver;

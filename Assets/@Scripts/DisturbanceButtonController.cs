@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class DisturbanceButtonController : ButtonController
 {
-    float _currentTime;
     private void OnEnable()
     {
         _currentTime = 0;
@@ -12,13 +11,14 @@ public class DisturbanceButtonController : ButtonController
         _currentTime += Time.deltaTime;
         if (_currentTime >= duration)
         {
-            StartCoroutine(FadeAway());
+            Destroy(gameObject);
         }
     }
 
     public override void ButtonClicked()
     {
+        Debug.Log("Wrong Button Click!!!");
         OnPlayerMissClicked?.Invoke();
-        StartCoroutine(FadeAway());
+        Destroy(gameObject);
     }
 }

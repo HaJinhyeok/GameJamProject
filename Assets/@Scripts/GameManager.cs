@@ -45,6 +45,8 @@ public class GameManager : MonoBehaviour
     int _currentMusicIndex;
     // 최종 점수
     int _score;
+    // 현재 해금된 최대 챕터(0-index)
+    int _maxChapter = 0;
     // 게임 결과
     bool _isSuccess;
     // 게임 진행 여부
@@ -78,6 +80,18 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public int MaxChapter
+    {
+        get
+        {
+            return _maxChapter;
+        }
+        set
+        {
+            _maxChapter = value;
+        }
+    }
+
     public bool IsSuccess
     {
         get
@@ -87,6 +101,14 @@ public class GameManager : MonoBehaviour
         set
         {
             _isSuccess = value;
+            if (_isSuccess)
+            {
+                // 현재 클리어한 음악 번호가 최대 챕터와 같으면
+                if (_currentMusicIndex == _maxChapter)
+                {
+                    _maxChapter++;
+                }
+            }
         }
     }
 
@@ -105,6 +127,8 @@ public class GameManager : MonoBehaviour
             }
         }
     }
+
+    public int Percentage { get; set; }
     #endregion
 
 

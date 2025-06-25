@@ -1,14 +1,11 @@
 using UnityEngine;
 using System.Collections.Generic;
-using UnityEngine.UI;
 
 public class TimeBasedOrbitCamera : MonoBehaviour
 {
     [System.Serializable]
     public class CameraKeyframe
     {
-        public static int s_numOfKeyframe;
-
         public float time;
         public bool isFirstPerson = false;
         public float height = 2f;
@@ -16,56 +13,17 @@ public class TimeBasedOrbitCamera : MonoBehaviour
         public Vector3 rotationOffset = Vector3.zero;
         public bool orbitMode = false;
         public float orbitSpeed = 30f; // degrees per second
-
-        public CameraKeyframe()
-        {
-            time = s_numOfKeyframe * 5f;
-            switch (s_numOfKeyframe % 3)
-            {
-                //1인칭
-                case 0:
-                    isFirstPerson = true;
-                    orbitMode = false;
-                    break;
-                //3인칭
-                case 1:
-                    isFirstPerson = false;
-                    orbitMode = false;
-                    break;
-                //orbit
-                case 2:
-                    isFirstPerson = false;
-                    orbitMode = true;
-                    break;
-                default:
-                    break;
-            }
-            s_numOfKeyframe++;
-        }
     }
 
-    [SerializeField] Text _currentModeText;
     public Transform target;
     public List<CameraKeyframe> keyframes = new List<CameraKeyframe>();
 
     [Header("Lerp Speeds")]
-    public float positionLerpSpeed = 3f;
-    public float rotationLerpSpeed = 3f;
+    public float positionLerpSpeed = 5f;
+    public float rotationLerpSpeed = 5f;
 
     private float elapsedTime = 0f;
     private float orbitAngle = 0f;
-
-    private void Start()
-    {
-        //test
-        for (int i = 0; i < 1000; i++)
-        {
-            CameraKeyframe keyframe = new CameraKeyframe();
-            //keyframe.isFirstPerson = true;
-            //keyframe.orbitMode = true;
-            keyframes.Add(keyframe);
-        }
-    }
 
     void Update()
     {
@@ -73,7 +31,7 @@ public class TimeBasedOrbitCamera : MonoBehaviour
 
         elapsedTime += Time.deltaTime;
 
-        // 현재 키프레임 찾기
+        // 현재 키프레임 쌍 찾기
         CameraKeyframe before = keyframes[0];
         CameraKeyframe after = keyframes[keyframes.Count - 1];
         for (int i = 0; i < keyframes.Count - 1; i++)
@@ -97,41 +55,42 @@ public class TimeBasedOrbitCamera : MonoBehaviour
         float orbitSpeed = Mathf.Lerp(before.orbitSpeed, after.orbitSpeed, t);
         float isFirstPersonVal = Mathf.Lerp(before.isFirstPerson ? 1 : 0, after.isFirstPerson ? 1 : 0, t);
 
-        Vector3 targetPos = target.position + Vector3.up * height;
-        //Vector3 targetPos = target.position + target.transform.TransformDirection(Vector3.up) * height;
+        // 목표 위치 계산
+        Vector3 desiredPosition;
 
-        // Orbit 모드 처리
-        Vector3 desiredPos;
         if (isFirstPersonVal >= 0.5f)
         {
-            desiredPos = targetPos;
-            _currentModeText.text = "1인칭";
+            // 1인칭 시 target 위치 바로 위
+            desiredPosition = target.position + Vector3.up * height;
         }
         else if (orbitMode)
         {
+            // ✅ 궤도 회전 방식
             orbitAngle += orbitSpeed * Time.deltaTime;
-            float rad = orbitAngle * Mathf.Deg2Rad;
-            //Vector3 offset = new Vector3(Mathf.Sin(rad), 0, Mathf.Cos(rad)) * distance;
-            Vector3 offset = new Vector3(Mathf.Sin(orbitAngle), 1, Mathf.Cos(orbitAngle)).normalized * distance;
-            desiredPos = targetPos + offset;
-            _currentModeText.text = "궤도";
+            if (orbitAngle >= 360f) orbitAngle -= 360f;
+
+            float angleRad = orbitAngle * Mathf.Deg2Rad;
+
+            Vector3 orbitDirection = new Vector3(Mathf.Sin(angleRad), 1f, -Mathf.Cos(angleRad)).normalized;
+            orbitDirection = target.TransformDirection(orbitDirection);
+
+            Vector3 baseBackOffset = -target.forward * 5f;
+            desiredPosition = target.position + baseBackOffset + orbitDirection * distance;
         }
         else
         {
-            //Vector3 backOffset = -target.forward * distance;
-            Vector3 backOffset = target.TransformDirection(-target.forward + target.up) * distance;
-            desiredPos = targetPos + backOffset;
-            _currentModeText.text = "3인칭";
+            // 일반 3인칭
+            Vector3 backOffset = -target.forward * distance;
+            desiredPosition = target.position + Vector3.up * height + backOffset;
         }
 
-        // 위치 이동
-        transform.position = Vector3.Lerp(transform.position, desiredPos, Time.deltaTime * positionLerpSpeed);
+        // 위치 보간
+        transform.position = Vector3.Lerp(transform.position, desiredPosition, Time.deltaTime * positionLerpSpeed);
 
         // 회전 처리
-        Quaternion lookRot = Quaternion.LookRotation(target.position - transform.position);
-        Quaternion desiredRot = lookRot * Quaternion.Euler(rotOffset);
-        transform.rotation = Quaternion.Slerp(transform.rotation, desiredRot, Time.deltaTime * rotationLerpSpeed);
+        Vector3 lookTarget = target.position + target.forward * 5f;
+        Quaternion targetRotation = Quaternion.LookRotation(lookTarget - transform.position);
+        Quaternion finalRotation = targetRotation * Quaternion.Euler(rotOffset);
+        transform.rotation = Quaternion.Slerp(transform.rotation, finalRotation, Time.deltaTime * rotationLerpSpeed);
     }
-
-
 }

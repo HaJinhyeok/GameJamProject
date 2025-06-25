@@ -5,9 +5,8 @@ public class CameraController : MonoBehaviour
 {
     [SerializeField] Transform _target;
     [SerializeField] Transform _cameraHolder;
-    [SerializeField] Text _currentModeText;
 
-    readonly Vector3 _posOffset = new Vector3(0, 10, -10);
+    readonly Vector3 _posOffset = new Vector3(0, 5, -10);
     readonly Vector3 _angleOffset = new Vector3(20, 0, 0);
     const float _orbitDistance = 15f;
     const float _orbitSpeed = 3f;
@@ -123,7 +122,6 @@ public class CameraController : MonoBehaviour
         transform.SetParent(_target);
         transform.localPosition = _posOffset;
         transform.localEulerAngles = _angleOffset;
-        _currentModeText.text = "3ÀÎÄª";
     }
 
     void SetFirstPersonPerspective()
@@ -131,13 +129,11 @@ public class CameraController : MonoBehaviour
         transform.SetParent(_cameraHolder);
         transform.localPosition = Vector3.zero;
         transform.localEulerAngles = Vector3.zero;
-        _currentModeText.text = "1ÀÎÄª";
     }
 
     void SetOrbitPerspective(float angle)
     {
         transform.position = EvaluateOrbitPosition(angle);
         transform.LookAt(_target.position + _target.TransformDirection(Vector3.forward) * 5f);
-        _currentModeText.text = "±Ëµµ";
     }
 }

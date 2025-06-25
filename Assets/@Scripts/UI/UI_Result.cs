@@ -5,33 +5,38 @@ using UnityEngine.UI;
 
 public class UI_Result : MonoBehaviour
 {
-    [SerializeField] TMP_Text _resultText;
     [SerializeField] TMP_Text _scoreText;
+    [SerializeField] TMP_Text _percentageText;
     [SerializeField] Button _retryButton;
     [SerializeField] Button _backButton;
+    [SerializeField] AudioSource _successSound;
+    [SerializeField] AudioSource _failureSound;
 
     void OnEnable()
     {
         if(GameManager.Instance.IsSuccess)
         {
-            _resultText.text = Define.Success;
+            _successSound.Play();
         }
         else
         {
-            _resultText.text = Define.Fail;
+            _failureSound.Play();
         }
-        _scoreText.text = $"SCORE : {GameManager.Instance.Score:D4}";
+        _scoreText.text = $"Á¡¼ö : {GameManager.Instance.Score}";
+        _percentageText.text = $"{GameManager.Instance.Percentage} %";
         _retryButton.onClick.AddListener(OnRetryButtonClick);
         _backButton.onClick.AddListener(OnBackButtonClick);
     }
 
     void OnRetryButtonClick()
     {
+        AudioManager.Instance.PlayButtonSound();
         GameManager.Instance.GameStart();
     }
 
     void OnBackButtonClick()
     {
+        AudioManager.Instance.PlayButtonSound();
         SceneManager.LoadScene(Define.ChapterChoiceScene);
     }
 }

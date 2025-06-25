@@ -6,15 +6,28 @@ using UnityEngine.UI;
 
 public class ButtonController : MonoBehaviour
 {
+    [SerializeField] protected Sprite[] _buttonSprites = new Sprite[2];
     public Button startButton;
-    public Text startButtonText;
     public Image indicator;
     public IndicatorCollision indicatorCollision;
 
     public float duration;
     public float buttonScore = 0;
-    private float startTime;
-    protected Stopwatch buttonTimer;
+
+    protected float _currentTime;
+    // 인디케이터가 줄어들고 있는지 여부
+    protected bool _isScaling;
+    // FadOut 중인지 여부
+    protected bool _isFadingOut;
+    // indicator scale 값
+    Vector3 _originalScale;
+    Vector3 _destinationScale;
+
+    protected float _fadeElapsedTime = 0f;
+    protected float _fadeTotalTime = 0.6f;
+    Color _fadeStartColor;
+    Color _fadeEndColor;
+    Color _fadeEndTextColor;
 
     public static Action<ButtonController> OnClicked;
     public static Action OnPlayerMissClicked;
@@ -28,36 +41,72 @@ public class ButtonController : MonoBehaviour
         startButton.transform.SetParent(gameObject.transform, false);
 
         startButton.gameObject.SetActive(true);
+        startButton.image.sprite = _buttonSprites[UnityEngine.Random.Range(0, _buttonSprites.Length)];
 
-        startTime = start;
-        buttonTimer = new Stopwatch();
-        buttonTimer.Start();
+        _currentTime = 0f;
 
         transform.localScale = Define.RandomScale[UnityEngine.Random.Range(0, Define.RandomScale.Length)];
-        StartCoroutine(ScaleIndicator());
+
+        if (indicator != null)
+        {
+            _originalScale = indicator.transform.localScale;
+        }
+        _destinationScale = Vector3.one * 0.6f;
+        _isScaling = true;
+        _isFadingOut = false;
     }
 
     void Update()
     {
-        if (startButton != null && startButton.gameObject.activeSelf && GameManager.Instance.IsPlaying && buttonTimer.ElapsedMilliseconds > duration)
+        if (startButton != null && startButton.gameObject.activeSelf)
         {
-            buttonTimer.Stop();
-            buttonTimer.Reset();
-            OnClicked?.Invoke(this);
+            _currentTime += Time.deltaTime;
+            if (_isScaling)
+            {
+                // ScalingIndicator
+                if (_currentTime < CalcPerfectTime())
+                {
+                    indicator.transform.localScale = Vector3.Lerp(_originalScale, _destinationScale, _currentTime / CalcPerfectTime());
+                }
+                if (_currentTime > duration)
+                {
+                    UnityEngine.Debug.Log("Missed Button!");
+                    OnPlayerMissClicked?.Invoke();
+                    _isScaling = false;
+                    _isFadingOut = true;
 
-            OnPlayerMissClicked?.Invoke();
-            StartCoroutine(FadeAway());
+                    // Fade 초기화
+                    _fadeElapsedTime = 0f;
+                    _fadeStartColor = startButton.image.color;
+                    _fadeEndColor = new Color(_fadeStartColor.r, _fadeStartColor.g, _fadeStartColor.b, 0f);
+                    _fadeEndTextColor = new Color(_fadeStartColor.r, _fadeStartColor.g, _fadeStartColor.b, 0.25f);
+
+                    // 콜라이더 비활성화
+                    Collider2D buttonCollider = indicator?.GetComponent<CircleCollider2D>();
+                    if (buttonCollider != null)
+                        buttonCollider.enabled = false;
+                }
+            }
+            if (_isFadingOut)
+            {
+                _fadeElapsedTime += Time.deltaTime;
+
+                float t = Mathf.Clamp01(_fadeElapsedTime / _fadeTotalTime);
+                startButton.image.color = Color.Lerp(_fadeStartColor, _fadeEndColor, t);
+                if (indicator != null)
+                    indicator.color = Color.Lerp(_fadeStartColor, _fadeEndColor, t);
+
+                if (_fadeElapsedTime >= _fadeTotalTime)
+                {
+                    Destroy(gameObject);
+                }
+            }
         }
-        //else if (this.gameButton != null && this.gameButton.gameObject.activeSelf)
-        //{
-        //    this.gameButton.image.color = new Vector4(1 - CalcColor(), CalcColor(), 0, 1);
-        //}
     }
 
     public virtual void ButtonClicked()
     {
-        float clickTime = buttonTimer.ElapsedMilliseconds;
-        Define.JudgementType judgement = GetJudgement(clickTime);
+        Define.JudgementType judgement = GetJudgement(_currentTime);
         buttonScore = GetFixedScoreFromJudgement(judgement);
 
         UnityEngine.Debug.Log($"Judgement: {judgement}, Score: {buttonScore}");
@@ -67,16 +116,16 @@ public class ButtonController : MonoBehaviour
         }
 
         OnClicked?.Invoke(this);
-        StartCoroutine(FadeAway());
+        _isFadingOut = true;
     }
 
     public Define.JudgementType GetJudgement(float clickTime)
     {
         float delta = Mathf.Abs(clickTime - CalcPerfectTime());
 
-        if (delta <= 20f) return Define.JudgementType.Perfect300;
-        else if (delta <= 60f) return Define.JudgementType.Good100;
-        else if (delta <= 100f) return Define.JudgementType.Poor50;
+        if (delta <= 0.1f) return Define.JudgementType.Perfect300;
+        else if (delta <= 0.2f) return Define.JudgementType.Good100;
+        else if (delta <= 0.3f) return Define.JudgementType.Poor50;
         else return Define.JudgementType.Miss;
     }
 
@@ -95,74 +144,4 @@ public class ButtonController : MonoBehaviour
     {
         return ((duration) / 2f);
     }
-
-    //public float CalcScore(float clickTime)
-    //{
-    //    return 1 - Mathf.Abs(clickTime - CalcPerfectTime()) / CalcPerfectTime();
-    //}
-
-    //public float CalcColor()
-    //{
-    //    if (((buttonTimer.ElapsedMilliseconds) / CalcPerfectTime()) <= 1f)
-    //    {
-    //        return (buttonTimer.ElapsedMilliseconds) / CalcPerfectTime();
-    //    }
-    //    else if ((duration - buttonTimer.ElapsedMilliseconds) / CalcPerfectTime() <= 1)
-    //    {
-    //        return (duration - buttonTimer.ElapsedMilliseconds) / CalcPerfectTime();
-    //    }
-    //    return 0;
-
-    //}
-
-    private IEnumerator ScaleIndicator()
-    {
-        Vector3 originalScale = indicator.transform.localScale;
-        Vector3 destinationScale = Vector3.one * 0.6f;
-
-        if (buttonTimer.IsRunning)
-        {
-            while (buttonTimer.ElapsedMilliseconds < CalcPerfectTime())
-            {
-                indicator.transform.localScale = Vector3.Lerp(originalScale, destinationScale, buttonTimer.ElapsedMilliseconds / CalcPerfectTime());
-                yield return null;
-            }
-        }
-    }
-
-    protected IEnumerator FadeAway()
-    {
-        Collider2D buttonCollider = indicator?.GetComponent<CircleCollider2D>();
-        if (buttonCollider != null)
-        {
-            buttonCollider.enabled = false;
-        }
-
-        Color originalColor = startButton.image.color;
-        Color finalColor = new Color(startButton.image.color.r, startButton.image.color.g, startButton.image.color.b, 0);
-        Color finalTextColor = new Color(startButton.image.color.r, startButton.image.color.g, startButton.image.color.b, 0.25f);
-
-        Vector3 originalPosition = new Vector3();
-
-        Vector3 destination = new Vector3(originalPosition.x, originalPosition.y + 50);
-
-        float ElapsedTime = 0.0f;
-        float TotalTime = 0.6f;
-        while (ElapsedTime < TotalTime)
-        {
-            ElapsedTime += Time.deltaTime;
-            startButton.image.color = Color.Lerp(originalColor, finalColor, (ElapsedTime / TotalTime));
-            if (indicator != null)
-            {
-                indicator.color = Color.Lerp(originalColor, finalColor, (ElapsedTime / TotalTime));
-            }
-
-            startButtonText.color = Color.Lerp(originalColor, finalColor, (ElapsedTime / TotalTime));
-
-            yield return null;
-        }
-
-        Destroy(gameObject);
-    }
-
 }
