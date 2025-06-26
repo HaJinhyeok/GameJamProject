@@ -12,6 +12,7 @@ public static class Define
     #region Scene
     public const string MainScene = "MainScene";
     public const string PrologueScene = "PrologueScene";
+    public const string TutorialScene = "TutorialScene";
     public const string GameScene = "GameScene";
     public const string ChapterChoiceScene = "ChapterChoiceScene";
     public const string ResultScene = "ResultScene";

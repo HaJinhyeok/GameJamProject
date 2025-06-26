@@ -44,6 +44,7 @@ public class SplineSpeedController : MonoBehaviour
     private float elapsedTime = 0f;
     private float totalDistance;
     private float currentT = 0f;
+    private bool _isFirstArrow = true;
 
     private 
 
@@ -127,13 +128,20 @@ public class SplineSpeedController : MonoBehaviour
             Debug.Log($"입력 요구: {checkpoint.requiredKey} 키를 눌러주세요!");
             UI_Game.OnArrowActivated?.Invoke(checkpoint.requiredKey);
 
+            if(TutorialManager.Instance.IsTutorial&&_isFirstArrow)
+            {
+                Time.timeScale = 0f;
+                TutorialManager.Instance.StartArrowTutorial(Vector2.zero);
+                _isFirstArrow = false;
+                GameController.OnPreferencePanelSet?.Invoke(true);
+            }
         }
 
         if (isWaitingForInput)
         {
             if (Input.GetKeyDown(checkpoint.requiredKey))
             {
-                UI_Game.OnArrowDeactivated?.Invoke();
+                //UI_Game.OnArrowDeactivated?.Invoke();
                 Debug.Log("입력 성공!");
                 isWaitingForInput = false;
                 nextInputIndex++;
@@ -145,6 +153,7 @@ public class SplineSpeedController : MonoBehaviour
                 //isWaitingForInput = false;
                 //Debug.Log("입력 실패 - 게임 오버");
                 //OnGameOver();
+                if (checkpoint.failSpline == splineContainer) return;
 
                 // 다른 스플라인으로 넘어가야함
                 if (checkpoint.failSpline != null)
@@ -157,7 +166,7 @@ public class SplineSpeedController : MonoBehaviour
 
                     nextInputIndex = 0;
 
-                    UI_Game.OnArrowDeactivated?.Invoke();
+                    //UI_Game.OnArrowDeactivated?.Invoke();
                 }
                 else
                 {

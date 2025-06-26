@@ -156,6 +156,13 @@ public class GameManager : MonoBehaviour
         }
         IsPlaying = true;
         Time.timeScale = 1f;
-        SceneManager.LoadScene(Define.GameScene);
+        if (_currentMusicIndex == 0)
+        {
+            SceneManager.LoadScene(Define.TutorialScene);
+        }
+        else
+        {
+            SceneManager.LoadScene(Define.GameScene);
+        }
     }
 }

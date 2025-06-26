@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
@@ -26,6 +27,8 @@ public class GameController : MonoBehaviour
     private int gameScore = 0;
     private int roundedButtonCount;
     private float _timer;
+    private bool _isFirstBubble = true;
+    private bool _isFirstDisturbance = true;
     //public Stopwatch gameTimer = new Stopwatch();
 
     private SortedList<float, ButtonItem> gameButtons = new SortedList<float, ButtonItem>();
@@ -47,8 +50,18 @@ public class GameController : MonoBehaviour
 
         StartCoroutine(SpawnDisturbanceButtons());
 
+        _isFirstBubble = true;
+        _isFirstDisturbance = true;
+        if(SceneManager.GetActiveScene().name==Define.TutorialScene)
+        {
+            TutorialManager.Instance.IsTutorial = true;
+        }
+        else
+        {
+            TutorialManager.Instance.IsTutorial = false;
+        }
 
-        ButtonController.OnClicked += OnGameButtonClick;
+            ButtonController.OnClicked += OnGameButtonClick;
         ButtonController.OnPlayerMissClicked += OnBrokenSoundPlay;
         GameManager.Instance.OnScoreUpdate += OnGameOver;
         OnPreferencePanelSet += MusicPause;
@@ -79,6 +92,15 @@ public class GameController : MonoBehaviour
 
                     buttonController.duration = gameSpeed;
                     buttonController.InitializeButton(_timer * 1000, spawnPos[0], spawnPos[1], spawnPos[0], spawnPos[1]);
+
+                    // 
+                    if (TutorialManager.Instance.IsTutorial && _isFirstDisturbance)
+                    {
+                        Time.timeScale = 0f;
+                        TutorialManager.Instance.StartDisturbanceTutorial(spawnPos);
+                        _isFirstDisturbance = false;
+                        MusicPause(true);
+                    }
                     //GameObject disturbance = Instantiate(_disturbanceButtonPrefab, canvasRectTransform);
                     //disturbance.transform.SetAsFirstSibling();
                     //UnityEngine.Debug.Log($"방해 버튼 생성됨 at {spawnPos}");
@@ -197,6 +219,14 @@ public class GameController : MonoBehaviour
 
         buttonController.duration = gameSpeed;
         buttonController.InitializeButton(startTime, startPos[0], startPos[1], endPos[0], endPos[1]);
+
+        if(TutorialManager.Instance.IsTutorial&&_isFirstBubble)
+        {
+            Time.timeScale = 0f;
+            TutorialManager.Instance.StartBubbleTutorial(new Vector2(startPos[0], startPos[1]));
+            _isFirstBubble = false;
+            MusicPause(true);
+        }
     }
 
     public void OnGameButtonClick(ButtonController button)

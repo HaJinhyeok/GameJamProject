@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1001 &8041872046059579213
+--- !u!1001 &2522578739896634904
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -10,15 +10,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 379da78b52fd4434b905838efee8d9f5, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1321.6742
+      value: 1205.516
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 379da78b52fd4434b905838efee8d9f5, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.6450556
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 379da78b52fd4434b905838efee8d9f5, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 196.36
+      value: 122.0912
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 379da78b52fd4434b905838efee8d9f5, type: 3}
       propertyPath: m_LocalRotation.w

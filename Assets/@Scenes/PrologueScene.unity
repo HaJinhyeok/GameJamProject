@@ -432,12 +432,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _prologueSprites:
-  - {fileID: 21300000, guid: 357b380dfaca0c2419e103c06dd1618e, type: 3}
-  - {fileID: 21300000, guid: f36a54918922ca74d91c37acdf11c0d9, type: 3}
-  - {fileID: 21300000, guid: 0086c85455f31144fb87e5aded85beea, type: 3}
-  - {fileID: 21300000, guid: be4664d5dc52e9246a4a44296c874039, type: 3}
-  - {fileID: 21300000, guid: 7d607619f26a21d418bb2d7b53e85d3e, type: 3}
-  - {fileID: 21300000, guid: deb1db487fb92284487a34ff34e20dc7, type: 3}
+  - {fileID: 21300000, guid: c589dceb4df35ee45a76e4125439764c, type: 3}
+  - {fileID: 21300000, guid: 0a37199e015cced4eb41efdd66eb31fd, type: 3}
+  - {fileID: 21300000, guid: 4e420c3730bbd1b4b8d273cfb54a7d97, type: 3}
+  - {fileID: 21300000, guid: 7000fc97d4bf9994aa1f3524a80b8946, type: 3}
+  - {fileID: 21300000, guid: cffeae41e4981c046932206d3c914023, type: 3}
+  - {fileID: 21300000, guid: 8fb1de6f2eccbe7428c6d494bd7e4768, type: 3}
   _prologueImage: {fileID: 240678101}
   _tiktokSound: {fileID: 1227574412}
 --- !u!82 &1227574412
