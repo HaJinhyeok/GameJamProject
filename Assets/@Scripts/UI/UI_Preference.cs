@@ -25,10 +25,10 @@ public class UI_Preference : MonoBehaviour
 
     private void OnEnable()
     {
-        if (SceneManager.GetActiveScene().name == Define.GameScene)
+        if (SceneManager.GetActiveScene().name != Define.ChapterChoiceScene)
         {
             _musicNameText.text = GameManager.Instance.CurrentMusic.name.Substring(1);
-            _musicNameText.text += $"\n{GameManager.Instance.Percentage} %";
+            _musicNameText.text += $"\n{GameManager.Instance.Percentage * 100:F0} %";
         }
         if (AudioManager.Instance.MasterMixer.GetFloat(Define.BGM, out float currentBGM))
         {
@@ -48,7 +48,7 @@ public class UI_Preference : MonoBehaviour
         AudioManager.Instance.PlayButtonSound();
         gameObject.SetActive(false);
         Time.timeScale = 1.0f;
-        if (SceneManager.GetActiveScene().name == Define.GameScene)
+        if (SceneManager.GetActiveScene().name != Define.ChapterChoiceScene)
         {
             GameController.OnPreferencePanelSet?.Invoke(false);
         }
@@ -63,7 +63,7 @@ public class UI_Preference : MonoBehaviour
             ExitGame();
         }
         // 게임씬에선 재시작
-        else if (SceneManager.GetActiveScene().name == Define.GameScene)
+        else
         {
             GameManager.Instance.GameStart();
         }
@@ -72,13 +72,14 @@ public class UI_Preference : MonoBehaviour
     void OnSecondButtonClick()
     {
         AudioManager.Instance.PlayButtonSound();
+        Time.timeScale = 1.0f;
         // 선택씬에선 프롤로그씬으로
         if (SceneManager.GetActiveScene().name == Define.ChapterChoiceScene)
         {
             SceneManager.LoadScene(Define.PrologueScene);
         }
-        // 게임씬에선 메인씬으로
-        else if (SceneManager.GetActiveScene().name == Define.GameScene)
+        // 게임씬에선 선택씬으로
+        else
         {
             SceneManager.LoadScene(Define.ChapterChoiceScene);
         }

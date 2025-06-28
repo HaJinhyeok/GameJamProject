@@ -7,6 +7,7 @@ public class UI_Prologue : MonoBehaviour
 {
     [SerializeField] Sprite[] _prologueSprites;
     [SerializeField] Image _prologueImage;
+    [SerializeField] Button _skipButton;
     [SerializeField] AudioSource _tiktokSound;
 
     Color _currentColor;
@@ -15,6 +16,7 @@ public class UI_Prologue : MonoBehaviour
     {
         _currentColor = new Color(1, 1, 1, 0);
         _prologueImage.color = _currentColor;
+        _skipButton.onClick.AddListener(OnSkipButtonClick);
         StartCoroutine(CoPlayPrologue());
     }
 
@@ -52,10 +54,17 @@ public class UI_Prologue : MonoBehaviour
         }
         MoveToChapterChoiceScene();
     }
+
     IEnumerator MoveToChapterChoiceScene()
     {
         _tiktokSound.Play();
         yield return new WaitForSeconds(5f);
+        SceneManager.LoadScene(Define.ChapterChoiceScene);
+    }
+
+    void OnSkipButtonClick()
+    {
+        StopAllCoroutines();
         SceneManager.LoadScene(Define.ChapterChoiceScene);
     }
 }

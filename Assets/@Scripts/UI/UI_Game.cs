@@ -20,8 +20,7 @@ public class UI_Game : MonoBehaviour
     Animator _arrowAnimator;
 
     public static Action<KeyCode> OnArrowActivated;
-    //public static Action OnArrowDeactivated;
-    public static Action<int> OnPercentageChanged;
+    public static Action<float> OnPercentageChanged;
 
     void Start()
     {
@@ -35,7 +34,6 @@ public class UI_Game : MonoBehaviour
         ButtonController.OnPlayerMissClicked += OnPlayerLifeMiss;
         GameManager.Instance.OnResultPanelActive += OnGameOver;
         OnArrowActivated += ActivateArrow;
-        //OnArrowDeactivated += DeactivateArrow;
         OnPercentageChanged += ChangePercentageText;
 
         _popUpPreference.SetActive(false);
@@ -58,6 +56,7 @@ public class UI_Game : MonoBehaviour
         {
             // 게임 오버
             Time.timeScale = 0f;
+            GameManager.Instance.IsSuccess = false;
             GameManager.Instance.IsPlaying = false;
         }
     }
@@ -85,16 +84,15 @@ public class UI_Game : MonoBehaviour
         }
     }
 
-    void ChangePercentageText(int progress)
+    void ChangePercentageText(float progress)
     {
-        _percentageText.text = $"{progress} %";
-        _percentageFill.fillAmount = progress / 100f;
+        _percentageText.text = $"{progress * 100:F0} %";
+        _percentageFill.fillAmount = progress;
     }
 
     private void OnDestroy()
     {
         OnArrowActivated -= ActivateArrow;
-        //OnArrowDeactivated -= DeactivateArrow;
         OnPercentageChanged -= ChangePercentageText;
         ButtonController.OnPlayerMissClicked -= OnPlayerLifeMiss;
         if (Application.isPlaying)

@@ -65,7 +65,7 @@ public class TimeBasedOrbitCamera : MonoBehaviour
         }
         else if (orbitMode)
         {
-            // ✅ 궤도 회전 방식
+            // 궤도 회전 방식
             orbitAngle += orbitSpeed * Time.deltaTime;
             if (orbitAngle >= 360f) orbitAngle -= 360f;
 

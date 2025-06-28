@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.Audio;
-using static UnityEngine.Rendering.DebugUI;
 
 [RequireComponent(typeof(AudioSource))]
 public class AudioManager : MonoBehaviour
@@ -23,7 +22,7 @@ public class AudioManager : MonoBehaviour
                 s_instance = FindAnyObjectByType<AudioManager>();
                 if (s_instance == null)
                 {
-                    GameObject gameManager = new GameObject("GameManager");
+                    GameObject gameManager = new GameObject("AudioManager");
                     AudioManager comp = gameManager.AddComponent<AudioManager>();
                     gameManager.transform.SetParent(go.transform);
                     s_instance = comp;
@@ -43,6 +42,8 @@ public class AudioManager : MonoBehaviour
     private void Awake()
     {
         _audioSource = GetComponent<AudioSource>();
+        _audioSource.clip = Resources.Load<AudioClip>(Define.ChoiceSoundPath);
+        MasterMixer = Resources.Load<AudioMixer>(Define.MasterMixerPath);
     }
 
     public void SetBGMVolume(float volume)

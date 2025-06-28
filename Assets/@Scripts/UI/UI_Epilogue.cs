@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Audio;
 using UnityEngine.UI;
 
 public class UI_Epilogue : MonoBehaviour
@@ -10,12 +9,12 @@ public class UI_Epilogue : MonoBehaviour
     [SerializeField] Sprite[] _failureSprites;
     [SerializeField] AudioSource _alarmSound;
 
-    void Start()
+    void OnEnable()
     {
         _nextButton.onClick.AddListener(OnNextButtonClick);
         _alarmSound.Play();
         GameManager.Instance.IsPlaying = false;
-        if(GameManager.Instance.IsSuccess)
+        if (GameManager.Instance.IsSuccess)
         {
             _epilogueBackground.sprite = _successSprites[Random.Range(0, _successSprites.Length)];
         }

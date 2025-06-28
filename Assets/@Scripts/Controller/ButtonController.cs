@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -27,13 +25,12 @@ public class ButtonController : MonoBehaviour
     protected float _fadeTotalTime = 0.6f;
     Color _fadeStartColor;
     Color _fadeEndColor;
-    Color _fadeEndTextColor;
 
     public static Action<ButtonController> OnClicked;
     public static Action OnPlayerMissClicked;
 
 
-    public void InitializeButton(float start, float startX, float startY, float endX, float endY)
+    public void InitializeButton(float start, float startX, float startY)
     {
         transform.SetAsFirstSibling();
         gameObject.transform.position = new Vector3(startX, startY);
@@ -79,7 +76,6 @@ public class ButtonController : MonoBehaviour
                     _fadeElapsedTime = 0f;
                     _fadeStartColor = startButton.image.color;
                     _fadeEndColor = new Color(_fadeStartColor.r, _fadeStartColor.g, _fadeStartColor.b, 0f);
-                    _fadeEndTextColor = new Color(_fadeStartColor.r, _fadeStartColor.g, _fadeStartColor.b, 0.25f);
 
                     // 콜라이더 비활성화
                     Collider2D buttonCollider = indicator?.GetComponent<CircleCollider2D>();
@@ -109,7 +105,6 @@ public class ButtonController : MonoBehaviour
         Define.JudgementType judgement = GetJudgement(_currentTime);
         buttonScore = GetFixedScoreFromJudgement(judgement);
 
-        UnityEngine.Debug.Log($"Judgement: {judgement}, Score: {buttonScore}");
         if (judgement == Define.JudgementType.Miss)
         {
             OnPlayerMissClicked?.Invoke();
@@ -123,9 +118,9 @@ public class ButtonController : MonoBehaviour
     {
         float delta = Mathf.Abs(clickTime - CalcPerfectTime());
 
-        if (delta <= 0.1f) return Define.JudgementType.Perfect300;
-        else if (delta <= 0.2f) return Define.JudgementType.Good100;
-        else if (delta <= 0.3f) return Define.JudgementType.Poor50;
+        if (delta <= 0.15f) return Define.JudgementType.Perfect300;
+        else if (delta <= 0.25f) return Define.JudgementType.Good100;
+        else if (delta <= 0.35f) return Define.JudgementType.Poor50;
         else return Define.JudgementType.Miss;
     }
 

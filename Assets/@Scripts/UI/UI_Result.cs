@@ -14,7 +14,7 @@ public class UI_Result : MonoBehaviour
 
     void OnEnable()
     {
-        if(GameManager.Instance.IsSuccess)
+        if (GameManager.Instance.IsSuccess)
         {
             _successSound.Play();
         }
@@ -23,7 +23,7 @@ public class UI_Result : MonoBehaviour
             _failureSound.Play();
         }
         _scoreText.text = $"Á¡¼ö : {GameManager.Instance.Score}";
-        _percentageText.text = $"{GameManager.Instance.Percentage} %";
+        _percentageText.text = $"{GameManager.Instance.Percentage * 100:F0} %";
         _retryButton.onClick.AddListener(OnRetryButtonClick);
         _backButton.onClick.AddListener(OnBackButtonClick);
     }
@@ -38,5 +38,6 @@ public class UI_Result : MonoBehaviour
     {
         AudioManager.Instance.PlayButtonSound();
         SceneManager.LoadScene(Define.ChapterChoiceScene);
+        Time.timeScale = 1f;
     }
 }

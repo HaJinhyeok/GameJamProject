@@ -15,10 +15,11 @@ public class SplineSpeedController : MonoBehaviour
     [System.Serializable]
     public class InputCheckpoint
     {
-        //public float tValue;            // spline 상의 타이밍 (0~1)
+        // 키 입력받아야하는 타이밍
         public float tValue;
-        public KeyCode requiredKey;     // 요구되는 키
-        //public float tolerance = 0.02f; // 허용 범위 (T 값 기준)
+        // 요구되는 키
+        public KeyCode requiredKey;
+        // 허용 시간 범위(1초)
         public float tolerance = 1f;
         public SplineContainer failSpline;
     }
@@ -46,7 +47,7 @@ public class SplineSpeedController : MonoBehaviour
     private float currentT = 0f;
     private bool _isFirstArrow = true;
 
-    private 
+    private
 
     void Start()
     {
@@ -64,12 +65,8 @@ public class SplineSpeedController : MonoBehaviour
         float deltaDistance = currentSpeed * Time.deltaTime;
         float deltaT = deltaDistance / totalDistance;
         currentT += deltaT;
-
         currentT = Mathf.Clamp01(currentT);
 
-        //currentT += Time.deltaTime;
-
-        //HandleInputCheckpoint(currentT);
         HandleInputCheckpoint(elapsedTime);
 
         float3 pos = splineContainer.EvaluatePosition(currentT);
@@ -118,7 +115,6 @@ public class SplineSpeedController : MonoBehaviour
 
         var checkpoint = inputCheckpoints[nextInputIndex];
         float minT = checkpoint.tValue - checkpoint.tolerance;
-        //float maxT = checkpoint.tValue + checkpoint.tolerance;
         float maxT = checkpoint.tValue;
 
         if (!isWaitingForInput && t >= minT && t <= maxT)
@@ -128,12 +124,10 @@ public class SplineSpeedController : MonoBehaviour
             Debug.Log($"입력 요구: {checkpoint.requiredKey} 키를 눌러주세요!");
             UI_Game.OnArrowActivated?.Invoke(checkpoint.requiredKey);
 
-            if(TutorialManager.Instance.IsTutorial&&_isFirstArrow)
+            if (TutorialController.IsTutorial && _isFirstArrow)
             {
-                Time.timeScale = 0f;
-                TutorialManager.Instance.StartArrowTutorial(Vector2.zero);
+                TutorialController.OnTutorial?.Invoke(Define.TutorialType.Arrow, Vector2.zero);
                 _isFirstArrow = false;
-                GameController.OnPreferencePanelSet?.Invoke(true);
             }
         }
 
@@ -141,20 +135,15 @@ public class SplineSpeedController : MonoBehaviour
         {
             if (Input.GetKeyDown(checkpoint.requiredKey))
             {
-                //UI_Game.OnArrowDeactivated?.Invoke();
                 Debug.Log("입력 성공!");
                 isWaitingForInput = false;
                 nextInputIndex++;
             }
             else if (t > maxT)
             {
-                // 허용 범위 넘김
-                //UI_Game.OnArrowDeactivated?.Invoke();
-                //isWaitingForInput = false;
-                //Debug.Log("입력 실패 - 게임 오버");
-                //OnGameOver();
                 if (checkpoint.failSpline == splineContainer) return;
 
+                // 허용 범위 넘김
                 // 다른 스플라인으로 넘어가야함
                 if (checkpoint.failSpline != null)
                 {
@@ -165,8 +154,6 @@ public class SplineSpeedController : MonoBehaviour
                     isWaitingForInput = false;
 
                     nextInputIndex = 0;
-
-                    //UI_Game.OnArrowDeactivated?.Invoke();
                 }
                 else
                 {
@@ -182,12 +169,12 @@ public class SplineSpeedController : MonoBehaviour
         // 필요에 따라 멈추거나 씬 전환, UI 띄우기 등
         Debug.Log("Game Over!!!");
         Time.timeScale = 0f;
+        GameManager.Instance.IsSuccess = false;
         GameManager.Instance.IsPlaying = false;
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        GameController.OnCollision?.Invoke();
         OnGameOver();
     }
 }

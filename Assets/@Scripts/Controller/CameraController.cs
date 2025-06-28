@@ -1,6 +1,6 @@
 using UnityEngine;
-using UnityEngine.UI;
 
+// 테스트용 임시 카메라 컨트롤러. 실제 게임에는 쓰이지 않음
 public class CameraController : MonoBehaviour
 {
     [SerializeField] Transform _target;

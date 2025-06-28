@@ -51,6 +51,8 @@ public class GameManager : MonoBehaviour
     bool _isSuccess;
     // 게임 진행 여부
     bool _isPlaying = true;
+    // 튜토리얼 클리어 여부
+    bool _isTutorialClear = false;
 
     #region Properties
     public AudioClip CurrentMusic
@@ -104,7 +106,7 @@ public class GameManager : MonoBehaviour
             if (_isSuccess)
             {
                 // 현재 클리어한 음악 번호가 최대 챕터와 같으면
-                if (_currentMusicIndex == _maxChapter)
+                if (_currentMusicIndex == _maxChapter && _currentMusicIndex < _gameMusics.Length)
                 {
                     _maxChapter++;
                 }
@@ -128,7 +130,19 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public int Percentage { get; set; }
+    public float Percentage { get; set; }
+
+    public bool IsTutorialClear
+    {
+        get
+        {
+            return _isTutorialClear;
+        }
+        set
+        {
+            _isTutorialClear = value;
+        }
+    }
     #endregion
 
 

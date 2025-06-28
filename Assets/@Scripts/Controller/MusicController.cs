@@ -3,7 +3,6 @@
 public class MusicController : MonoBehaviour
 {
     public AudioSource AudioSource;
-    float _musicTimer;
     int _currentPercentage;
 
     void Start()
@@ -15,19 +14,24 @@ public class MusicController : MonoBehaviour
     {
         if (AudioSource.isPlaying)
         {
-            _musicTimer += Time.deltaTime;
-            int newPercentage = (int)(_musicTimer / AudioSource.clip.length * 100);
+            float newPercentage = (AudioSource.time / AudioSource.clip.length);
             if (newPercentage > _currentPercentage)
             {
-                _currentPercentage = newPercentage;
-                UI_Game.OnPercentageChanged?.Invoke(_currentPercentage);
-                GameManager.Instance.Percentage = _currentPercentage;
+                _currentPercentage = (int)newPercentage;
+                UI_Game.OnPercentageChanged?.Invoke(newPercentage);
+                GameManager.Instance.Percentage = newPercentage;
             }
-            if (_currentPercentage >= 100)
+            if (newPercentage >= 0.99)
             {
+                Time.timeScale = 0f;
+                // 튜토리얼 클리어 시
+                if (TutorialController.IsTutorial)
+                {
+                    GameManager.Instance.IsTutorialClear = true;
+                }
+                GameManager.Instance.Percentage = 1f;
                 GameManager.Instance.IsSuccess = true;
-                GameManager.Instance.Percentage = _currentPercentage;
-                GameManager.Instance.OnScoreUpdate?.Invoke();
+                GameManager.Instance.IsPlaying = false;
             }
         }
     }
@@ -37,7 +41,6 @@ public class MusicController : MonoBehaviour
         if (AudioSource.clip != null)
         {
             AudioSource.Play();
-            _musicTimer = 0f;
             _currentPercentage = 0;
             UI_Game.OnPercentageChanged?.Invoke(_currentPercentage);
             GameManager.Instance.Percentage = _currentPercentage;
@@ -55,7 +58,6 @@ public class MusicController : MonoBehaviour
     private void LoadMusic()
     {
         AudioClip clip = GameManager.Instance.CurrentMusic;
-        //AudioClip clip = Resources.Load<AudioClip>("Musics/0babyshark");
         if (clip != null)
         {
             AudioSource.clip = clip;
