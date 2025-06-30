@@ -12,7 +12,9 @@ Unity 기반 리듬 어드벤처 게임.
 ## 사용된 주요 패키지 및 플러그인
 
 **ChatGTP 4o**
+
 **Unity Splnes 2.8.1**: 레일 이동 구현
+
 **MusicRhythmGame**: Github - DanSalib/MusicRhythmGame(https://github.com/DanSalib/MusicRhythmGame.git), 리듬 버블 생성 및 판정 기능
 
 ## 프로그래머 연락처
