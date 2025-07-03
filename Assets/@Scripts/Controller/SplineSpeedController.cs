@@ -119,9 +119,8 @@ public class SplineSpeedController : MonoBehaviour
 
         if (!isWaitingForInput && t >= minT && t <= maxT)
         {
-            isWaitingForInput = true;
             // 플레이어 입력을 기다리는 상태가 됨
-            Debug.Log($"입력 요구: {checkpoint.requiredKey} 키를 눌러주세요!");
+            isWaitingForInput = true;
             UI_Game.OnArrowActivated?.Invoke(checkpoint.requiredKey);
 
             if (TutorialController.IsTutorial && _isFirstArrow)
@@ -135,7 +134,6 @@ public class SplineSpeedController : MonoBehaviour
         {
             if (Input.GetKeyDown(checkpoint.requiredKey))
             {
-                Debug.Log("입력 성공!");
                 isWaitingForInput = false;
                 nextInputIndex++;
             }

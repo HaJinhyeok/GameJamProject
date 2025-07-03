@@ -17,7 +17,6 @@ public class DisturbanceButtonController : ButtonController
 
     public override void ButtonClicked()
     {
-        Debug.Log("Wrong Button Click!!!");
         OnPlayerMissClicked?.Invoke();
         Destroy(gameObject);
     }

@@ -7,7 +7,6 @@ public class ButtonController : MonoBehaviour
     [SerializeField] protected Sprite[] _buttonSprites = new Sprite[2];
     public Button startButton;
     public Image indicator;
-    public IndicatorCollision indicatorCollision;
 
     public float duration;
     public float buttonScore = 0;
@@ -67,7 +66,6 @@ public class ButtonController : MonoBehaviour
                 }
                 if (_currentTime > duration)
                 {
-                    UnityEngine.Debug.Log("Missed Button!");
                     OnPlayerMissClicked?.Invoke();
                     _isScaling = false;
                     _isFadingOut = true;
@@ -76,11 +74,6 @@ public class ButtonController : MonoBehaviour
                     _fadeElapsedTime = 0f;
                     _fadeStartColor = startButton.image.color;
                     _fadeEndColor = new Color(_fadeStartColor.r, _fadeStartColor.g, _fadeStartColor.b, 0f);
-
-                    // 콜라이더 비활성화
-                    Collider2D buttonCollider = indicator?.GetComponent<CircleCollider2D>();
-                    if (buttonCollider != null)
-                        buttonCollider.enabled = false;
                 }
             }
             if (_isFadingOut)
