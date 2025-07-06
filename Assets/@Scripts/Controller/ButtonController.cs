@@ -69,6 +69,7 @@ public class ButtonController : MonoBehaviour
                     OnPlayerMissClicked?.Invoke();
                     _isScaling = false;
                     _isFadingOut = true;
+                    startButton.GetComponent<Image>().raycastTarget = false;
 
                     // Fade 초기화
                     _fadeElapsedTime = 0f;
@@ -103,6 +104,7 @@ public class ButtonController : MonoBehaviour
             OnPlayerMissClicked?.Invoke();
         }
 
+        startButton.GetComponent<Image>().raycastTarget = false;
         OnClicked?.Invoke(this);
         _isFadingOut = true;
     }

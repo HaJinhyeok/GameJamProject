@@ -77,7 +77,7 @@ public class SplineSpeedController : MonoBehaviour
         Quaternion finalRotation = Quaternion.LookRotation((Vector3)tangent, (Vector3)up);
 
         transform.position = (Vector3)pos;
-        transform.rotation = finalRotation;
+        transform.rotation = finalRotation * axisRemap;
         if (currentT >= 1f)
         {
             elapsedTime = 0f;
